@@ -64,4 +64,82 @@ public class LibraryTest {
         assertTrue("User should not be admin", !loggedInUser.isAdmin());
     }
     
+    
+    @Test
+    public void testBorrowBook() {
+        User user = new User("john", "password123", false);
+        library.registerUser(user);
+        Book book = new Book("12345", "Test Book", "Test Author", 2023);
+        library.addBook(book);
+        
+        library.borrowBook("12345", user);
+        
+        List<Book> availableBooks = library.getAvailableBooks();
+        assertTrue(availableBooks.isEmpty());
+        
+        // Verify book is borrowed
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM borrowed_books WHERE username = ? AND isbn = ?")) {
+            stmt.setString(1, "john");
+            stmt.setString(2, "12345");
+            ResultSet rs = stmt.executeQuery();
+            assertTrue(rs.next());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testReturnBook() {
+        User user = new User("john", "password123", false);
+        library.registerUser(user);
+        Book book = new Book("12345", "Test Book", "Test Author", 2023);
+        library.addBook(book);
+        library.borrowBook("12345", user);
+        library.returnBook("12345");
+        
+        List<Book> availableBooks = library.getAvailableBooks();
+        assertEquals(1, availableBooks.size());
+        assertEquals("12345", availableBooks.get(0).getIsbn());
+        
+        // Verify book is returned
+        try (Connection conn = DatabaseHelper.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM borrowed_books WHERE isbn = ?")) {
+            stmt.setString(1, "12345");
+            ResultSet rs = stmt.executeQuery();
+            assertFalse(rs.next());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+@Test
+    public void testBorrowBookNotAvailable() {
+        User user = new User("john", "password123", false);
+        library.registerUser(user);
+        Book book = new Book("12345", "Test Book", "Test Author", 2023);
+        library.addBook(book);
+        
+        library.borrowBook("12345", user);
+        
+        try {
+            library.borrowBook("12345", user);
+            fail("Exception should be thrown when borrowing an already borrowed book.");
+        } catch (Exception e) {
+            assertEquals("Book is already borrowed.", e.getMessage());
+        }
+    }
+ @Test
+    public void testRegisterUserWithExistingUsername() {
+        User user1 = new User("john", "password123", false);
+        library.registerUser(user1);
+        User user2 = new User("john", "newpassword", false);
+        
+        try {
+            library.registerUser(user2);
+            fail("Exception should be thrown when registering a user with an existing username.");
+        } catch (Exception e) {
+            assertEquals("Username already exists.", e.getMessage());
+        }
+    }
+    
 }
