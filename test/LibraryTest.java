@@ -142,4 +142,32 @@ public class LibraryTest {
         }
     }
     
+      @Test
+    public void testGetAvailableBooksWhenEmpty() {
+        List<Book> availableBooks = library.getAvailableBooks();
+        assertTrue("Book list should be empty", availableBooks.isEmpty());
+    }
+    @Test
+    public void testDeleteBook() throws SQLException {
+        Book book = new Book("12345", "Test Book", "Test Author", 2023);
+        library.addBook(book);
+        library.deleteBook("12345");
+        
+        List<Book> availableBooks = library.getAvailableBooks();
+        assertTrue("Book list should be empty after deletion", availableBooks.isEmpty());
+    }
+    
+    @Test
+    public void testDeleteBookThatDoesNotExist() {
+        // Try to delete a book that doesn't exist
+        try {
+            library.deleteBook("99999");
+            // Check that no exception was thrown
+            // Optionally, you can verify that the state of the database remains unchanged
+            List<Book> availableBooks = library.getAvailableBooks();
+            assertTrue("Book list should still be empty", availableBooks.isEmpty());
+        } catch (Exception e) {
+            fail("Exception should not be thrown when deleting a non-existing book.");
+        }
+    }
 }
