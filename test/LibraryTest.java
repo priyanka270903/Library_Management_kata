@@ -42,6 +42,26 @@ public class LibraryTest {
         assertEquals(1, availableBooks.size());
         assertEquals(book.getIsbn(), availableBooks.get(0).getIsbn());
     }
+ @Test
+    public void testRegisterUser() {
+        User user = new User("john", "password123", false);
+        library.registerUser(user);
+        
+        // Verify user is registered
+        User retrievedUser = library.loginUser("john", "password123");
+        assertNotNull(retrievedUser);
+        assertEquals("john", retrievedUser.getUsername());
+        assertFalse(retrievedUser.isAdmin());
+    }
 
+    @Test
+    public void testLoginUser() {
+        User user = new User("john", "password123", false);
+        library.registerUser(user);
+        
+        User loggedInUser = library.loginUser("john", "password123");
+        assertNotNull(loggedInUser);
+        assertTrue("User should not be admin", !loggedInUser.isAdmin());
+    }
     
 }
